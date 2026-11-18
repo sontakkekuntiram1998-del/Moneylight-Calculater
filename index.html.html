@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Moneylight Calculators</title>
+<meta name="description" content="Standard, EMI, Percentage and Area calculators">
+<meta name="theme-color" content="#134e4a">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ML Calc">
+<meta name="application-name" content="Moneylight Calculators">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--bg:#e6eeec;--surf:#fff;--ink:#0b2421;--mut:#5a7673;--line:#d3e1de;--pri:#134e4a;--pri2:#1d7a72;--amb:#f59e0b;--amb2:#ffb83d;--ambink:#3b2400;--key:#fff;--fn:#e3eeeb;--good:#15803d;--bad:#dc2626;--shadow:0 1px 0 #fff inset,0 3px 0 rgba(11,36,33,.13);--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#041210;--surf:#0c2421;--ink:#e6f3f0;--mut:#8fb0aa;--line:#1b3d38;--key:#14352f;--fn:#1b3f39;--good:#4ade80;--bad:#f87171;--shadow:0 1px 0 rgba(255,255,255,.07) inset,0 3px 0 rgba(0,0,0,.5)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:"Segoe UI Variable","SF Pro Text",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);overscroll-behavior:none;-webkit-text-size-adjust:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+input,select{user-select:text;-webkit-user-select:text}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
+.app{height:100%;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;max-width:1100px;margin:0 auto;position:relative}
+.top{background:radial-gradient(circle at 92% -20%,#f59e0b55,transparent 45%),linear-gradient(135deg,#0a3633,#134e4a 60%,#1d7a72);color:#fff;display:flex;align-items:center;gap:12px;padding:calc(var(--sat) + 14px) 18px 46px;border-radius:0 0 30px 30px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--amb2),var(--amb));color:var(--ambink);display:grid;place-items:center;font-weight:900;font-size:16px;letter-spacing:-.5px;box-shadow:0 6px 16px #0005}
+.top b{display:block;font-size:18px;letter-spacing:-.3px}.top small{opacity:.75;font-size:12px}
+#cxTitle{margin-left:auto;font-size:12.5px;font-weight:700;background:#ffffff1c;border:1px solid #ffffff22;padding:7px 14px;border-radius:99px;backdrop-filter:blur(6px)}
+main{overflow:auto;padding:0 14px 20px;margin-top:-34px;-webkit-overflow-scrolling:touch}
+.cx-pane{display:none;min-height:100%}
+.cx-pane.active{display:flex;flex-direction:column;animation:paneIn .25s ease-out}
+@keyframes paneIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.cx-grid{display:flex;flex-direction:column;flex:1;gap:14px;min-height:0}
+.cx-calc{position:relative;display:flex;flex-direction:column;flex:1;min-height:0}
+.cx-display{position:relative;background:linear-gradient(160deg,#134e4a,#071f1d 70%);border:1px solid #ffffff18;color:#fff;border-radius:26px;padding:34px 20px 14px;margin-bottom:12px;text-align:right;min-height:136px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 14px 30px rgba(3,20,18,.35),0 0 0 4px rgba(245,158,11,.10);overflow:hidden}
+.cx-display::after{content:"";position:absolute;right:-40px;top:-60px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,#f59e0b33,transparent 70%);pointer-events:none}
+.cx-expr{font-size:16px;color:#a8d0c9;min-height:24px;word-break:break-all;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.cx-res{font-size:clamp(32px,9.5vw,48px);font-weight:800;line-height:1.15;word-break:break-all;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.cx-res.pop{animation:pop .16s ease-out}
+@keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
+.cx-res.err{font-size:18px;color:#fecaca}
+.cx-words{font-size:13px;color:var(--amb2);font-weight:700;min-height:19px;margin-top:2px}
+.cx-mem{position:absolute;left:16px;top:14px;font-size:11px;font-weight:800;background:#f59e0b;color:var(--ambink);border-radius:7px;padding:3px 8px}
+.cx-mem[hidden]{display:none}
+.hbtn{position:absolute;right:14px;top:12px;border:1px solid #ffffff26;background:#ffffff1a;color:#fff;border-radius:99px;font-size:12px;font-weight:700;padding:6px 13px;z-index:2}
+.pad{background:var(--surf);border-radius:28px;padding:12px;box-shadow:0 8px 24px rgba(11,36,33,.10);flex:1;display:flex;flex-direction:column;min-height:0}
+.cx-keys{display:grid;gap:9px;flex:1;grid-auto-rows:minmax(54px,1fr);grid-template-columns:repeat(4,1fr)}
+.cx-keys button{border:0;border-radius:18px;background:var(--key);box-shadow:var(--shadow);font-size:22px;font-weight:600;transition:transform .08s,filter .12s,box-shadow .08s;min-width:0}
+.cx-keys button:active{transform:translateY(3px) scale(.96);box-shadow:none;filter:brightness(.92)}
+.cx-keys button.fn{background:var(--fn);font-size:16px;font-weight:700}
+.cx-keys button.op{background:linear-gradient(160deg,var(--pri2),var(--pri));color:#fff;font-size:27px;box-shadow:0 3px 0 #0a2f2c}
+.cx-keys button.ac{background:#fde2e2;color:#991b1b}
+@media(prefers-color-scheme:dark){.cx-keys button.ac{background:#4a1f1f;color:#fecaca}}
+.cx-keys button.eq{background:linear-gradient(160deg,var(--amb2),var(--amb));color:var(--ambink);font-size:30px;font-weight:800;box-shadow:0 3px 0 #b36f00,0 8px 18px #f59e0b55}
+.cx-keys button.wide{grid-column:span 3}
+.cx-hist{display:none;position:absolute;inset:0;z-index:5;background:var(--surf);border-radius:26px;padding:16px;overflow:auto;box-shadow:0 14px 34px rgba(0,0,0,.3);animation:paneIn .18s ease-out}
+.cx-hist.show{display:block}
+.cx-hist-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cx-hist button.cx-h{display:block;width:100%;text-align:right;border:0;background:transparent;padding:10px 6px;border-bottom:1px dashed var(--line)}
+.cx-hist button.cx-h small{display:block;color:var(--mut);font-size:12.5px}.cx-hist button.cx-h b{font-size:18px}
+.panel{background:var(--surf);border-radius:26px;padding:20px;box-shadow:0 8px 24px rgba(11,36,33,.10);margin-bottom:14px}
+.panel h3{margin:0 0 16px;font-size:18px;letter-spacing:-.2px;display:flex;align-items:center;gap:10px}
+.panel h3 i{font-style:normal;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--pri2),var(--pri));font-size:18px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form .full{grid-column:1/-1}
+label{display:block;font-size:12.5px;font-weight:650;color:var(--mut)}
+input,select{width:100%;margin-top:6px;padding:15px 14px;font-size:18px;font-weight:600;border-radius:15px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;appearance:none;-webkit-appearance:none;font-variant-numeric:tabular-nums}
+select{font-size:16px;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(-45deg,transparent 50%,var(--mut) 50%);background-position:calc(100% - 20px) 55%,calc(100% - 14px) 55%;background-size:6px 6px;background-repeat:no-repeat;padding-right:34px}
+input:focus,select:focus{border-color:var(--pri2);outline:none;box-shadow:0 0 0 4px #1d7a7230}
+.words{color:var(--amb);font-size:12.5px;font-weight:700;min-height:17px;margin-top:5px}
+@media(prefers-color-scheme:light){.words{color:#b45309}}
+.hero{margin-top:18px;border-radius:22px;padding:18px;color:#fff;background:radial-gradient(circle at 100% 0,#f59e0b44,transparent 50%),linear-gradient(150deg,#134e4a,#06201e)}
+.hero small{opacity:.8;font-weight:600;font-size:12.5px}
+.hero .big{font-size:clamp(30px,9vw,42px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.2;word-break:break-all}
+.hero .row{display:flex;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #ffffff22;font-weight:600;flex-wrap:wrap}
+.hero .row b{font-variant-numeric:tabular-nums}
+.split{height:12px;border-radius:99px;background:#f59e0b;overflow:hidden;margin-top:14px;display:flex}
+.split i{display:block;height:100%;background:#4fd1c0;transition:width .4s}
+.legend{display:flex;justify-content:space-between;font-size:12px;margin-top:7px;opacity:.9;font-weight:600}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.hint{color:var(--mut);font-size:12px;font-weight:500;line-height:1.5}
+.field-error{color:var(--bad);font-size:12.5px;margin-top:8px;font-weight:600}.field-error:empty{display:none}
+.btn{border:0;border-radius:13px;padding:11px 16px;background:var(--pri);color:#fff;font-weight:700;font-size:14px}
+.btn.light{background:var(--fn);color:var(--ink)}.btn-sm{padding:7px 12px;font-size:12px;border-radius:10px}
+.table{border-radius:16px;overflow:auto;background:var(--bg);margin-top:8px;max-height:60vh}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:10px 12px;text-align:left}th{color:var(--mut);font-size:12px;position:sticky;top:0;background:var(--bg)}tr+tr td{border-top:1px solid var(--line)}
+td.num-r,th.num-r{text-align:right;font-variant-numeric:tabular-nums}
+h4.sec{margin:20px 0 2px;font-size:14px}
+.res2{margin-top:16px;background:var(--bg);border-radius:18px;padding:14px 16px;border-left:5px solid var(--amb);font-weight:600}
+.res2 .big{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;word-break:break-all}
+.tabs{display:flex;background:color-mix(in srgb,var(--surf) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);margin:0 12px calc(10px + var(--sab));padding:6px;border-radius:26px;box-shadow:0 10px 30px rgba(11,36,33,.22);gap:4px;border:1px solid var(--line)}
+.tabs button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 2px;border-radius:20px;font-size:11.5px;font-weight:700;color:var(--mut);transition:background .2s,color .2s,transform .1s}
+.tabs button span{font-size:21px;line-height:1.1}
+.tabs button:active{transform:scale(.95)}
+.tabs button.active{background:linear-gradient(150deg,var(--pri2),var(--pri));color:#fff;box-shadow:0 6px 14px #134e4a55}
+@media(min-width:900px){
+ .app{grid-template-rows:auto 1fr;grid-template-columns:110px 1fr}.top{grid-column:1/-1}
+ .tabs{grid-row:2;grid-column:1;flex-direction:column;justify-content:flex-start;margin:14px 0 14px 12px;align-self:start}
+ main{grid-column:2;padding:0 22px 22px}
+ .cx-grid{flex-direction:row;align-items:stretch}.cx-calc{flex:0 0 450px}
+ .cx-hist{display:block;position:static;flex:1;box-shadow:0 8px 24px rgba(11,36,33,.10);animation:none;max-height:680px}
+ .hbtn,.hclose{display:none}
+}
+@media(max-height:660px){.top{padding-bottom:40px}.cx-display{min-height:104px;padding-top:28px}.cx-keys{gap:6px;grid-auto-rows:minmax(44px,1fr)}.cx-keys button{font-size:18px}}
+@media(hover:none){.kbhint{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#installBtn{border:0;background:var(--amb);color:var(--ambink);font-weight:800;font-size:12.5px;padding:8px 13px;border-radius:99px;box-shadow:0 4px 12px #0004}#installBtn[hidden]{display:none}
+.toast{position:fixed;left:50%;bottom:calc(96px + var(--sab));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:13px;font-weight:600;z-index:50;animation:pop .2s}
+</style>
+</head><body>
+<div class="app">
+<header class="top"><div class="logo">ML</div><div><b>Moneylight</b><small>Calculators</small></div><span id="cxTitle" aria-live="polite"></span><button id="installBtn" type="button" hidden>📲 Install</button></header>
+<main>
+ <section class="cx-pane active" id="cxp-std" aria-label="Standard calculator"><div class="cx-grid">
+  <div class="cx-calc">
+   <div class="cx-display" aria-live="polite"><div class="cx-expr" id="cxstdExpr">&nbsp;</div><div class="cx-res" id="cxstdRes" data-keep="0">0</div><div class="cx-words" id="cxstdWords"></div><span class="cx-mem" id="cxstdMem" hidden>M</span><button class="hbtn" type="button" onclick="cxHist(this)">History</button></div>
+   <div class="pad"><div class="cx-keys" id="cxKeysStd"></div></div>
+   <div class="hint kbhint" style="margin-top:8px">Keyboard bhi chalta hai: 0-9 . + − × ÷ ( ) %, Enter (=), Backspace, Esc (clear).</div>
+   <div class="cx-hist"><div class="cx-hist-h"><b id="histCount">History</b><span><button class="btn light btn-sm" onclick="cxHistClear()">Clear</button> <button class="btn btn-sm hclose" onclick="cxHist(this)">Close</button></span></div><div id="cxHistStd"></div></div>
+  </div></div></section>
+ <section class="cx-pane" id="cxp-emi" aria-label="Loan EMI calculator"><div class="panel">
+  <h3><i>🏦</i>Loan EMI Calculator</h3>
+  <div class="form">
+   <label class="full">Loan Amount (₹)<input type="text" inputmode="decimal" id="emiAmount" placeholder="5,00,000" autocomplete="off" oninput="formatCurrencyInput(this); calcEMI()"></label>
+   <div class="words full" id="emiWords"></div>
+   <label>Interest Rate (% p.a.)<input type="number" inputmode="decimal" step="0.01" id="emiRate" placeholder="10.5" oninput="calcEMI()"></label>
+   <label>Tenure<input type="number" inputmode="decimal" id="emiTenure" placeholder="5" oninput="calcEMI()"></label>
+   <label class="full">Tenure type<select id="emiUnit" onchange="calcEMI()"><option value="y">Years</option><option value="m">Months</option></select></label>
+  </div>
+  <div class="hero">
+   <small>Monthly EMI</small><div class="big" id="resEmi">₹0</div>
+   <div class="split"><i id="splitP" style="width:0"></i></div>
+   <div class="legend"><span><span class="dot" style="background:#4fd1c0"></span>Principal <b id="pctP">0%</b></span><span><span class="dot" style="background:#f59e0b"></span>Interest <b id="pctI">0%</b></span></div>
+   <div class="row"><span>Total Interest</span><b id="resInterest">₹0</b></div>
+   <div class="row"><span>Total Amount Payable</span><b id="resTotal">₹0</b></div>
+  </div>
+  <div id="schedWrap" hidden><h4 class="sec">Year-wise schedule</h4><div class="table"><table><thead><tr><th>Year</th><th class="num-r">Principal</th><th class="num-r">Interest</th><th class="num-r">Balance</th></tr></thead><tbody id="schedBody"></tbody></table></div></div>
+ </div></section>
+ <section class="cx-pane" id="cxp-pct" aria-label="Percentage and commission calculator"><div class="panel">
+  <h3><i>％</i>Percentage &amp; Commission</h3>
+  <div class="form">
+   <label class="full">Kya nikalna hai?
+    <select id="pMode" onchange="calcPercent()"><option value="of">X% of an amount (commission)</option><option value="add">Amount plus X%</option><option value="sub">Amount minus X%</option><option value="what">A kitne % hai B ka</option></select></label>
+   <label class="full"><span id="pLabelA">Total Amount (₹)</span><input type="text" inputmode="decimal" id="pTotalAmount" placeholder="10,00,000" autocomplete="off" oninput="formatCurrencyInput(this); calcPercent()"></label>
+   <div class="words full" id="pWords"></div>
+   <label class="full"><span id="pLabelB">Percentage / Payout (%)</span><input type="text" inputmode="decimal" id="pPercentage" placeholder="1.5  (koi bhi value: 150, 1,000, 0.25 …)" autocomplete="off" oninput="calcPercent()"></label>
+  </div>
+  <div class="field-error" id="pError" role="alert"></div>
+  <div class="hero"><small id="pResultLabel">Calculated Amount</small><div class="big" id="resPercentVal">₹0</div><div id="pExtra" class="hint" style="color:#cfe9e3;margin-top:6px"></div></div>
+  <div class="hint" style="margin-top:12px">Koi upper limit nahi: 150%, 500%, 1,000% sab chalega. Calculation exact decimal arithmetic se hota hai (2 decimals tak, “kitna %” me 4).</div>
+ </div></section>
+ <section class="cx-pane" id="cxp-conv" aria-label="Area converter">
+  <div class="panel">
+   <h3 id="cxConvTitle"><i>📐</i>Area Converter</h3>
+   <div class="form">
+    <label class="full">Value<input id="cxVal" type="text" inputmode="decimal" autocomplete="off" placeholder="Number likhein" oninput="formatCurrencyInput(this); cxConvRun()"></label>
+    <label>From<select id="cxFrom" onchange="cxConvRun()"></select></label>
+    <label>To<select id="cxTo" onchange="cxConvRun()"></select></label>
+   </div>
+   <div style="margin-top:12px"><button class="btn light" onclick="cxSwap()">⇄ Swap units</button></div>
+   <div class="res2">
+    <div id="cxConvEq" class="hint">&nbsp;</div>
+    <div><span id="cxConvRes" class="big" style="color:var(--good)">—</span> <span id="cxConvUnit"></span> <button class="btn light btn-sm" style="margin-left:6px" onclick="cxCopy('cxConvRes')">Copy</button></div>
+    <div class="field-error" id="cxConvErr" role="alert"></div>
+   </div>
+   <h4 class="sec">Sabhi units me</h4>
+   <div class="table"><table><thead><tr><th>Unit</th><th class="num-r">Value</th></tr></thead><tbody id="cxConvAll"></tbody></table></div>
+  </div>
+ </section>
+</main>
+<nav class="tabs" id="cxTabs" aria-label="Calculator type"></nav>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function escapeHtml(value){return String(value ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function formatIndianNum(val){
+  if(val===null||val===undefined||val==='') return '';
+  let clean=val.toString().replace(/,/g,'');
+  if(clean===''||isNaN(clean)) return '';
+  let parts=clean.split('.');
+  let integerPart=parts[0];
+  let neg=''; if(integerPart.startsWith('-')){neg='-';integerPart=integerPart.slice(1);}
+  let decimalPart=parts.length>1?'.'+parts[1]:'';
+  let lastThree=integerPart.substring(integerPart.length-3);
+  let otherNumbers=integerPart.substring(0,integerPart.length-3);
+  if(otherNumbers!=='') lastThree=','+lastThree;
+  return neg+otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g,',')+lastThree+decimalPart;
+}
+function parseCurrencyNum(val){ if(!val) return 0; return parseFloat(val.toString().replace(/,/g,''))||0; }
+function formatCurrencyInput(el){
+  if(!el) return;
+  const start=Number.isInteger(el.selectionStart)?el.selectionStart:el.value.length;
+  const before=el.value.slice(0,start);
+  const oldLen=el.value.length;
+  let clean=el.value.replace(/[^0-9.]/g,'');
+  const dot=clean.indexOf('.');
+  if(dot>=0) clean=clean.slice(0,dot+1)+clean.slice(dot+1).replace(/\./g,'');
+  el.value=formatIndianNum(clean);
+  const cleanBefore=before.replace(/[^0-9.]/g,'');
+  let cursor=el.value.length;
+  if(cleanBefore){ cursor=Math.min(el.value.length,formatIndianNum(cleanBefore).length); } else if(oldLen===0){ cursor=0; }
+  try{el.setSelectionRange(cursor,cursor);}catch(e){}
+}
+function fmtNum(n){
+  const v=Number(n); if(!isFinite(v)) return '0';
+  const r=Math.round((v+Number.EPSILON)*100)/100;
+  return formatIndianNum(String(r));
+}
+const money=n=>'₹'+fmtNum(n||0);
+
+// Exact decimal arithmetic (BigInt) so large numbers / many decimals never suffer float error.
+function decParse(str){
+  const s=String(str??'').trim().replace(/,/g,'').replace(/%$/,'').trim();
+  if(!/^\d*\.?\d+$|^\d+\.$/.test(s)) return null;
+  const [i,f='']=s.split('.'); if((i+f).replace(/^0+/,'').length>5000) return {tooBig:true};
+  return {n:BigInt((i||'0')+f),s:f.length};
+}
+function decFmt(n,scale,dp){ // BigInt n / 10^scale → string rounded half-up to dp decimals
+  let shift=scale-dp; let v=n;
+  if(shift>0){ const d=10n**BigInt(shift); v=(n+d/2n)/d; } else if(shift<0){ v=n*10n**BigInt(-shift); }
+  let s=v.toString().padStart(dp+1,'0'); const ip=s.slice(0,s.length-dp), fp=s.slice(s.length-dp);
+  return {int:ip,frac:fp};
+}
+function fmtDecResult(n,scale,dp,trim){
+  const {int,frac}=decFmt(n,scale,dp); let f=frac; if(trim) f=f.replace(/0+$/,'');
+  return formatIndianNum(int)+(f?'.'+f:'');
+}
+function calcPercent(){
+  const mode=$('pMode').value; const A=decParse($('pTotalAmount').value), B=decParse($('pPercentage').value);
+  const err=$('pError'); const out=$('resPercentVal'), extra=$('pExtra');
+  const labels={of:['Total Amount (₹)','Percentage / Payout (%)','Calculated Amount'],add:['Amount (₹)','Increase by (%)','Amount after increase'],sub:['Amount (₹)','Decrease by (%)','Amount after decrease'],what:['Value A (₹)','Out of value B (₹)','A as a percentage of B']};
+  $('pLabelA').textContent=labels[mode][0]; $('pLabelB').textContent=labels[mode][1]; $('pResultLabel').textContent=labels[mode][2];
+  err.textContent=''; extra.textContent='';
+  const rawA=$('pTotalAmount').value.trim(), rawB=$('pPercentage').value.trim();
+  if(!rawA&&!rawB){ out.textContent=mode==='what'?'0%':'₹0'; return; }
+  if(rawA && !A){ err.textContent='Enter the first value as a plain positive number (digits and one decimal point).'; out.textContent='—'; return; }
+  if(rawB && !B){ err.textContent=mode==='what'?'Enter the second value as a plain positive number.':'Enter the percentage as a plain positive number, e.g. 12.5, 150 or 1,000.'; out.textContent='—'; return; }
+  if((A&&A.tooBig)||(B&&B.tooBig)){ err.textContent='That number has too many digits to calculate accurately.'; out.textContent='—'; return; }
+  if(!A||!B){ out.textContent=mode==='what'?'0%':'₹0'; return; }
+  if(mode==='what'){
+    if(B.n===0n){ err.textContent='Cannot divide by zero — value B must be greater than 0.'; out.textContent='—'; return; }
+    // (A/B)*100 with 6 working decimals
+    const num=A.n*10n**BigInt(B.s)*100n*10n**6n, den=B.n*10n**BigInt(A.s);
+    const q=num/den; out.textContent=fmtDecResult(q,6,4,true)+'%'; return;
+  }
+  const prodN=A.n*B.n, prodS=A.s+B.s+2;               // A × B / 100
+  if(mode==='of'){ out.textContent='₹'+fmtDecResult(prodN,prodS,2,true); return; }
+  const aScaled=A.n*10n**BigInt(B.s+2);                // A in the same scale as prod
+  const total=mode==='add'?aScaled+prodN:aScaled-prodN;
+  if(total<0n){ out.textContent='−₹'+fmtDecResult(-total,prodS,2,true); extra.textContent='The decrease is larger than the amount.'; }
+  else out.textContent='₹'+fmtDecResult(total,prodS,2,true);
+  extra.textContent=(mode==='add'?'Increase of ₹':'Decrease of ₹')+fmtDecResult(prodN,prodS,2,true);
+}
+function calcEMI(){
+  const p=Math.max(0,parseCurrencyNum($('emiAmount').value));
+  const rateRaw=parseFloat($('emiRate').value); const rate=Math.min(100,Math.max(0,Number.isFinite(rateRaw)?rateRaw:0));
+  const tenureRaw=parseFloat($('emiTenure').value); const n=Math.min(480,Math.max(0,Number.isFinite(tenureRaw)?tenureRaw:0))*12;
+  if(p>0&&n>0){
+    const r=rate/12/100; const emi=r>0?(p*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1):p/n; const totalAmt=emi*n;
+    $('resEmi').textContent=money(Math.round(emi)); $('resInterest').textContent=money(Math.max(0,Math.round(totalAmt-p))); $('resTotal').textContent=money(Math.round(totalAmt));
+  }else{ $('resEmi').textContent='₹0'; $('resInterest').textContent='₹0'; $('resTotal').textContent='₹0'; }
+}
+
+const CXS={active:'std',deg:true,hist:[],std:{expr:'',ans:0,done:false,last:'',mem:0},sci:{expr:'',ans:0,done:false,last:'',mem:0},conv:'length'};
+const CX_NAV=[
+  {g:'Calculators',items:[['std','🔢','Standard'],['sci','🧪','Scientific']]},
+  {g:'Finance',items:[['emi','🏦','Loan EMI'],['pct','％','Percentage & Commission']]},
+  {g:'Unit converters',items:[['length','📏','Length'],['mass','⚖️','Mass / Weight'],['area','⬛','Area (incl. gaj, guntha)'],['volume','🧪','Volume'],['temp','🌡️','Temperature'],['speed','🚗','Speed'],['time','⏱️','Time'],['data','💾','Data Size'],['angle','📐','Angle'],['pressure','🎈','Pressure'],['energy','⚡','Energy'],['power','🔌','Power']]}
+];
+const SQFT=0.09290304; // m² per sq ft (exact)
+const CX_UNITS={
+  length:{name:'Length',icon:'📏',def:['km','mi'],u:[['mm','Millimetre (mm)',0.001],['cm','Centimetre (cm)',0.01],['m','Metre (m)',1],['km','Kilometre (km)',1000],['in','Inch (in)',0.0254],['ft','Foot (ft)',0.3048],['yd','Yard (yd)',0.9144],['mi','Mile (mi)',1609.344],['nmi','Nautical mile',1852],['um','Micrometre (µm)',1e-6],['nm','Nanometre (nm)',1e-9]]},
+  mass:{name:'Mass / Weight',icon:'⚖️',def:['kg','lb'],u:[['mg','Milligram (mg)',1e-6],['g','Gram (g)',0.001],['kg','Kilogram (kg)',1],['q','Quintal (100 kg)',100],['t','Tonne (1000 kg)',1000],['oz','Ounce (oz)',0.028349523125],['lb','Pound (lb)',0.45359237],['st','Stone (st)',6.35029318],['tola','Tola (11.664 g)',0.011664],['ct','Carat (0.2 g)',0.0002]]},
+  area:{name:'Area',icon:'⬛',def:['acre','sqft'],u:[['sqmm','Sq millimetre',1e-6],['sqcm','Sq centimetre',1e-4],['sqm','Sq metre (m²)',1],['sqkm','Sq kilometre (km²)',1e6],['ha','Hectare',10000],['acre','Acre',4046.8564224],['sqft','Sq foot (sq ft)',SQFT],['sqin','Sq inch',0.00064516],['sqyd','Sq yard (gaj)',0.83612736],['guntha','Guntha (1,089 sq ft)',1089*SQFT],['cent','Cent (435.6 sq ft)',435.6*SQFT],['sqmi','Sq mile',2589988.110336]]},
+  volume:{name:'Volume',icon:'🧪',def:['l','gal'],u:[['ml','Millilitre (ml)',1e-6],['l','Litre (L)',0.001],['m3','Cubic metre (m³)',1],['cm3','Cubic centimetre (cm³)',1e-6],['ft3','Cubic foot (ft³)',0.028316846592],['tsp','Teaspoon (US)',4.92892159375e-6],['tbsp','Tablespoon (US)',1.478676478125e-5],['floz','Fluid ounce (US)',2.95735295625e-5],['cup','Cup (US)',2.365882365e-4],['pt','Pint (US)',4.73176473e-4],['qt','Quart (US)',9.46352946e-4],['gal','Gallon (US)',3.785411784e-3],['galuk','Gallon (UK)',4.54609e-3]]},
+  speed:{name:'Speed',icon:'🚗',def:['kmh','mph'],u:[['ms','Metre / second',1],['kmh','Kilometre / hour',1/3.6],['mph','Mile / hour',0.44704],['kn','Knot',1852/3600],['fts','Foot / second',0.3048]]},
+  time:{name:'Time',icon:'⏱️',def:['h','min'],u:[['ms','Millisecond',0.001],['s','Second',1],['min','Minute',60],['h','Hour',3600],['d','Day',86400],['wk','Week',604800],['mo','Month (average)',2629800],['yr','Year (365.25 days)',31557600]]},
+  data:{name:'Data Size',icon:'💾',def:['gb','mb'],u:[['bit','Bit',0.125],['b','Byte (B)',1],['kb','Kilobyte (KB = 1,000 B)',1e3],['mb','Megabyte (MB)',1e6],['gb','Gigabyte (GB)',1e9],['tb','Terabyte (TB)',1e12],['pb','Petabyte (PB)',1e15],['kib','Kibibyte (KiB = 1,024 B)',1024],['mib','Mebibyte (MiB)',1048576],['gib','Gibibyte (GiB)',1073741824],['tib','Tebibyte (TiB)',1099511627776]]},
+  angle:{name:'Angle',icon:'📐',def:['deg','rad'],u:[['deg','Degree (°)',1],['rad','Radian (rad)',180/Math.PI],['grad','Gradian (grad)',0.9],['turn','Turn',360],['arcmin','Arcminute (′)',1/60],['arcsec','Arcsecond (″)',1/3600]]},
+  pressure:{name:'Pressure',icon:'🎈',def:['bar','psi'],u:[['pa','Pascal (Pa)',1],['kpa','Kilopascal (kPa)',1e3],['mpa','Megapascal (MPa)',1e6],['bar','Bar',1e5],['atm','Atmosphere (atm)',101325],['psi','PSI',6894.757293168],['mmhg','mmHg (torr)',133.322387415],['kgf','kgf / cm²',98066.5]]},
+  energy:{name:'Energy',icon:'⚡',def:['kwh','kj'],u:[['j','Joule (J)',1],['kj','Kilojoule (kJ)',1e3],['cal','Calorie (cal)',4.184],['kcal','Kilocalorie (kcal)',4184],['wh','Watt-hour (Wh)',3600],['kwh','Kilowatt-hour (kWh)',3.6e6],['btu','BTU',1055.05585262],['ftlb','Foot-pound',1.3558179483314]]},
+  power:{name:'Power',icon:'🔌',def:['kw','hp'],u:[['w','Watt (W)',1],['kw','Kilowatt (kW)',1e3],['mw','Megawatt (MW)',1e6],['hp','Horsepower (hp)',745.69987158227],['ps','Metric HP (PS)',735.49875],['btuh','BTU / hour',0.29307107]]},
+  temp:{name:'Temperature',icon:'🌡️',def:['c','f'],temp:true,u:[['c','Celsius (°C)'],['f','Fahrenheit (°F)'],['k','Kelvin (K)']]}
+};
+const CX_TOC={c:x=>x,f:x=>(x-32)*5/9,k:x=>x-273.15}, CX_FROMC={c:x=>x,f:x=>x*9/5+32,k:x=>x+273.15};
+
+function cxClean(v){ if(!Number.isFinite(v)) throw new Error('Math error'); return Number(v.toPrecision(15)); }
+function cxFmtNum(v){
+  if(!Number.isFinite(v)) return '—'; if(v===0) return '0';
+  const a=Math.abs(v); if(a>=1e21||a<1e-9) return Number(v.toPrecision(7)).toExponential().replace('e+','e');
+  return Number(v.toPrecision(15)).toLocaleString('en-IN',{maximumFractionDigits:15});
+}
+
+/* ---- expression engine ---- */
+function cxTokenize(src,ans){
+  const s=String(src).replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/√/g,'sqrt'); const out=[]; let i=0;
+  const F=['asin','acos','atan','sin','cos','tan','ln','log','sqrt','abs','exp'];
+  while(i<s.length){
+    const c=s[i];
+    if(/\s/.test(c)){ i++; continue; }
+    if(/[0-9.]/.test(c)){ let j=i; while(j<s.length&&/[0-9.]/.test(s[j])) j++; const raw=s.slice(i,j);
+      if(raw==='.'||(raw.match(/\./g)||[]).length>1) throw new Error('Invalid number'); out.push({k:'n',v:parseFloat(raw)}); i=j; continue; }
+    if(c==='π'){ out.push({k:'n',v:Math.PI}); i++; continue; }
+    if(/[a-zA-Z]/.test(c)){ let j=i; while(j<s.length&&/[a-zA-Z]/.test(s[j])) j++; let w=s.slice(i,j).toLowerCase();
+      if(w==='pi') out.push({k:'n',v:Math.PI}); else if(w==='e') out.push({k:'n',v:Math.E}); else if(w==='ans') out.push({k:'n',v:ans});
+      else if(F.includes(w)) out.push({k:'f',v:w}); else throw new Error('Unknown: '+w); i=j; continue; }
+    if('+-*/^()!%'.includes(c)){ out.push({k:'o',v:c}); i++; continue; }
+    throw new Error('Invalid character');
+  }
+  return out;
+}
+function cxEval(src,opt){
+  const deg=opt.deg, tk=cxTokenize(src,opt.ans||0); let p=0;
+  const peek=()=>tk[p], isOp=o=>peek()&&peek().k==='o'&&peek().v===o;
+  const val=x=>x.pct?x.v/100:x.v;
+  const chk=v=>{ if(!Number.isFinite(v)) throw new Error('Math error'); return v; };
+  const rad=x=>deg?x*Math.PI/180:x, back=x=>deg?x*180/Math.PI:x, z=x=>Math.abs(x)<1e-12?0:x;
+  const FN={
+    sin:x=>z(Math.sin(rad(x))), cos:x=>z(Math.cos(rad(x))),
+    tan:x=>{ if(Math.abs(Math.cos(rad(x)))<1e-12) throw new Error('Undefined'); return z(Math.tan(rad(x))); },
+    asin:x=>{ if(x<-1||x>1) throw new Error('Out of range'); return back(Math.asin(x)); },
+    acos:x=>{ if(x<-1||x>1) throw new Error('Out of range'); return back(Math.acos(x)); },
+    atan:x=>back(Math.atan(x)),
+    ln:x=>{ if(x<=0) throw new Error('Must be > 0'); return Math.log(x); },
+    log:x=>{ if(x<=0) throw new Error('Must be > 0'); return Math.log10(x); },
+    sqrt:x=>{ if(x<0) throw new Error('Invalid input'); return Math.sqrt(x); },
+    abs:Math.abs, exp:Math.exp
+  };
+  function fact(n){ if(!Number.isInteger(n)||n<0||n>170) throw new Error('Factorial needs 0–170'); let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
+  const startsOperand=()=>{ const t=peek(); return t&&(t.k==='n'||t.k==='f'||(t.k==='o'&&t.v==='(')); };
+  function expr(){ let l=term();
+    while(isOp('+')||isOp('-')){ const op=tk[p++].v; const r=term(); const lv=val(l); const rv=r.pct?lv*r.v/100:r.v; l={v:chk(op==='+'?lv+rv:lv-rv)}; }
+    return l; }
+  function term(){ let l=unary();
+    for(;;){
+      if(isOp('*')||isOp('/')){ const op=tk[p++].v; const r=unary(); const a=val(l), b=val(r);
+        if(op==='/'){ if(b===0) throw new Error('Cannot divide by zero'); l={v:chk(a/b)}; } else l={v:chk(a*b)}; }
+      else if(startsOperand()){ const r=unary(); l={v:chk(val(l)*val(r))}; }
+      else break; }
+    return l; }
+  function unary(){ if(isOp('-')){ p++; return {v:-val(unary())}; } if(isOp('+')){ p++; return unary(); } return power(); }
+  function power(){ const b=postfix(); if(isOp('^')){ p++; const e=unary(); return {v:chk(Math.pow(val(b),val(e)))}; } return b; }
+  function postfix(){ let x=primary();
+    for(;;){ if(isOp('!')){ p++; x={v:fact(val(x))}; } else if(isOp('%')){ p++; x={v:val(x),pct:true}; } else break; }
+    return x; }
+  function primary(){ const t=tk[p++]; if(!t) throw new Error('Incomplete');
+    if(t.k==='n') return {v:t.v};
+    if(t.k==='f'){ if(!(peek()&&peek().k==='o'&&peek().v==='(')) throw new Error('Use '+t.v+'( )'); p++; const a=expr(); if(isOp(')')) p++; return {v:chk(FN[t.v](val(a)))}; }
+    if(t.k==='o'&&t.v==='('){ const a=expr(); if(isOp(')')) p++; return a; }
+    throw new Error('Invalid expression'); }
+  if(!tk.length) return 0;
+  const r=expr(); if(p<tk.length) throw new Error('Invalid expression');
+  return cxClean(val(r));
+}
+
+/* ---- calculator UI (shared by Standard + Scientific) ---- */
+const CX_KEYS_STD=[['MC','fn'],['MR','fn'],['M+','fn'],['M−','fn'],['AC','ac'],['(','fn'],[')','fn'],['⌫','fn'],['7'],['8'],['9'],['÷','op'],['4'],['5'],['6'],['×','op'],['1'],['2'],['3'],['−','op'],['±','fn'],['0'],['.'],['+','op'],['%','fn'],['=','eq wide']];
+const CX_KEYS_SCI=[['DEG','fn'],['sin','fn'],['cos','fn'],['tan','fn'],['⌫','fn'],['π','fn'],['asin','fn'],['acos','fn'],['atan','fn'],['AC','ac'],['e','fn'],['ln','fn'],['log','fn'],['√','fn'],['x!','fn'],['(','fn'],[')','fn'],['x²','fn'],['xʸ','fn'],['1/x','fn'],['7'],['8'],['9'],['÷','op'],['%','fn'],['4'],['5'],['6'],['×','op'],['Ans','fn'],['1'],['2'],['3'],['−','op'],['M+','fn'],['±','fn'],['0'],['.'],['+','op'],['=','eq']];
+function cxBuildKeys(){
+  const mk=(arr,id,w)=>{ $(id).innerHTML=arr.map(([k,c])=>`<button type="button" class="${c||''}" data-k="${escapeHtml(k)}" onclick="cxPress('${w}',this.dataset.k)" aria-label="${escapeHtml(k)}">${escapeHtml(k)}</button>`).join(''); };
+  mk(CX_KEYS_STD,'cxKeysStd','std');
+}
+function cxPress(w,label){
+  const map={'÷':'/','×':'*','−':'-','M−':'M-','⌫':'C','√':'sqrt(','x²':'^2','xʸ':'^','x!':'!','sin':'sin(','cos':'cos(','tan':'tan(','asin':'asin(','acos':'acos(','atan':'atan(','ln':'ln(','log':'log(','Ans':'ans'};
+  cxKey(w,map[label]||label);
+}
+function cxKey(w,k){
+  const s=CXS[w], ops='+-*/^'; const last=s.expr.slice(-1);
+  const startsNew=()=>{ if(s.done){ s.expr=''; s.done=false; } };
+  const curVal=()=>{ try{ return s.done?s.ans:cxEval(s.expr||'0',{deg:CXS.deg,ans:s.ans}); }catch(e){ return null; } };
+  s.err='';
+  if(k==='AC'){ s.expr=''; s.done=false; s.last=''; }
+  else if(k==='C'){ if(s.done){ s.expr=''; s.done=false; } else s.expr=s.expr.replace(/(asin\(|acos\(|atan\(|sin\(|cos\(|tan\(|ln\(|log\(|sqrt\(|exp\(|abs\(|ans|.)$/u,''); }
+  else if(k==='DEG'){ CXS.deg=!CXS.deg; }
+  else if(k==='='){
+    if(!s.done&&s.expr.trim()){ try{ const v=cxEval(s.expr,{deg:CXS.deg,ans:s.ans}); CXS.hist.unshift({e:s.expr,r:v}); s.last=s.expr; s.ans=v; s.expr='ans'; s.done=true; }catch(e){ s.err=e.message; } }
+  }
+  else if(/^[0-9.]$/.test(k)){ startsNew(); if(k==='.'){ const seg=s.expr.match(/[0-9.]*$/)[0]; if(seg.includes('.')) return cxRender(w); if(!seg) s.expr+='0'; } s.expr+=k; }
+  else if(ops.includes(k)&&k.length===1){
+    if(s.done){ s.done=false; }
+    if(!s.expr){ if(k==='-') s.expr='-'; else if(s.ans||s.ans===0){ s.expr='ans'+k; } }
+    else if(ops.includes(last)){ if(k==='-'&&'*/^'.includes(last)) s.expr+=k; else if(s.expr.length>1||last!=='-') s.expr=s.expr.slice(0,-1)+k; }
+    else if(last==='('){ if(k==='-') s.expr+=k; }
+    else s.expr+=k;
+  }
+  else if(k==='%'||k==='!'){ if(s.expr&&!ops.includes(last)&&last!=='('){ if(s.done) s.done=false; s.expr+=k; } }
+  else if(k==='±'){
+    if(s.done){ s.ans=-s.ans; }
+    else { const m=s.expr.match(/\(-([0-9.]+)\)$/); if(m) s.expr=s.expr.slice(0,-m[0].length)+m[1]; else { const n=s.expr.match(/([0-9.]+)$/); if(n) s.expr=s.expr.slice(0,-n[0].length)+'(-'+n[0]+')'; else if(!s.expr) s.expr='-'; } }
+  }
+  else if(k==='M+'||k==='M-'){ const v=curVal(); if(v!==null){ s.mem=cxClean(s.mem+(k==='M+'?v:-v)); if(!s.done&&s.expr){ s.last=s.expr; s.ans=v; s.expr='ans'; s.done=true; } } }
+  else if(k==='MC'){ s.mem=0; }
+  else if(k==='MR'){ if(s.mem){ startsNew(); s.expr=s.expr.replace(/[0-9.]+$/,''); const m=Number(s.mem.toPrecision(15)); s.expr+=m<0?'('+m+')':String(m); } }
+  else if(k==='1/x'){ const base=s.done?'ans':s.expr; if(base){ s.expr='1/('+base+')'; s.done=false; } }
+  else if(k==='('){ startsNew(); s.expr+=k; }
+  else if(k===')'){ if((s.expr.match(/\(/g)||[]).length>(s.expr.match(/\)/g)||[]).length&&!ops.includes(last)&&last!=='(') s.expr+=k; }
+  else { /* π, e, ans, functions, ^2 */
+    if(k==='^2'){ if(s.expr&&!ops.includes(last)&&last!=='('){ if(s.done) s.done=false; s.expr+=k; } }
+    else { if(s.done&&k!=='ans') startsNew(); else if(s.done&&k==='ans'){ s.done=false; s.expr=''; }
+      if(k==='ans'||k==='π'||k==='e'||/\($/.test(k)){ if(/[0-9.)πe]$|ans$/.test(s.expr)) s.expr+='*'; } s.expr+=k; }
+  }
+  cxRender(w);
+}
+function cxRender(w){
+  const s=CXS[w]; const eEl=$('cx'+w+'Expr'), rEl=$('cx'+w+'Res');
+  const pretty=cxPretty;
+  let res='0', err=s.err||'';
+  if(!err){
+    if(s.done) res=cxFmtNum(s.ans);
+    else if(s.expr){ try{ res=cxFmtNum(cxEval(s.expr,{deg:CXS.deg,ans:s.ans})); }catch(e){ res=$('cx'+w+'Res').dataset.keep||'0'; } }
+  }
+  eEl.innerHTML=(s.done?escapeHtml(pretty(s.last))+' =':escapeHtml(pretty(s.expr)))||'&nbsp;';
+  rEl.classList.toggle('err',!!err); rEl.textContent=err||res; if(!err) rEl.dataset.keep=res;
+  const mem=$('cx'+w+'Mem'); if(mem) mem.hidden=!s.mem;
+  const md=$('cxsciMode'); if(md) md.textContent=CXS.deg?'DEG':'RAD';
+  document.querySelectorAll('#cxKeysSci button[data-k="DEG"]').forEach(b=>b.textContent=CXS.deg?'DEG':'RAD');
+  cxHistRender();
+}
+function cxHistRender(){
+  const h=CXS.hist.map((x,i)=>`<button type="button" class="cx-h" onclick="cxHistUse(${i})"><small>${escapeHtml(cxPretty(x.e))} =</small><b>${escapeHtml(cxFmtNum(x.r))}</b></button>`).join('')||'<div class="hint">No calculations yet.</div>';
+  ['cxHistStd','cxHistSci'].forEach(id=>{ const el=$(id); if(el) el.innerHTML=h; });
+}
+function cxHistUse(i){ const w=CXS.active==='sci'?'sci':'std', x=CXS.hist[i]; if(!x) return; const s=CXS[w]; s.expr=x.e; s.done=false; s.err=''; cxRender(w); }
+function cxHistClear(){ CXS.hist=[]; cxHistRender(); }
+function cxCopy(id){ const t=$(id).textContent; if(!t||t==='—') return; (navigator.clipboard?navigator.clipboard.writeText(t.replace(/,/g,'')):Promise.reject()).then(()=>toast('Copied: '+t,'ok')).catch(()=>toast('Copy not available in this browser.','warn')); }
+document.addEventListener('keydown',e=>{
+    const w=CXS.active; if(w!=='std'&&w!=='sci') return;
+  const tg=e.target; if(tg&&/^(INPUT|SELECT|TEXTAREA)$/.test(tg.tagName)) return;
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  const k=e.key; let m=null;
+  if(/^[0-9.]$/.test(k)) m=k; else if(k.length===1&&'+-*/^()%!'.includes(k)) m=k; else if(k==='x'||k==='X') m='*';
+  else if(k==='Enter'||k==='=') m='='; else if(k==='Backspace') m='C'; else if(k==='Escape'||k==='Delete') m='AC';
+  if(m){ e.preventDefault(); cxKey(w,m); }
+});
+
+/* ---- unit converters ---- */
+function cxConvSet(key){
+  const c=CX_UNITS[key]; CXS.conv=key; $('cxConvTitle').textContent=c.icon+' '+c.name+' Converter';
+  const opts=c.u.map(u=>`<option value="${u[0]}">${escapeHtml(u[1])}</option>`).join('');
+  $('cxFrom').innerHTML=opts; $('cxTo').innerHTML=opts; $('cxFrom').value=c.def[0]; $('cxTo').value=c.def[1]; $('cxVal').value='1'; cxConvRun();
+}
+function cxConvert(c,v,from,to){
+  if(c.temp) return cxClean(CX_FROMC[to](CX_TOC[from](v)));
+  const f=c.u.find(u=>u[0]===from)[2], t=c.u.find(u=>u[0]===to)[2]; return cxClean(v*f/t);
+}
+function cxConvRun(){
+  const c=CX_UNITS[CXS.conv]; const raw=$('cxVal').value.trim().replace(/,/g,''); const from=$('cxFrom').value, to=$('cxTo').value;
+  const err=$('cxConvErr'); err.textContent='';
+  const nm=u=>c.u.find(x=>x[0]===u)[1];
+  let v=raw===''?1:NaN; if(raw!==''&&/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(raw)) v=Number(raw);
+  if(!Number.isFinite(v)){ $('cxConvRes').textContent='—'; $('cxConvUnit').textContent=''; $('cxConvEq').innerHTML='&nbsp;'; $('cxConvAll').innerHTML=''; err.textContent='Enter a valid number, e.g. 12.5 or 1,000.'; return; }
+  if(c.temp){ const k=CX_TOC[from](v)+273.15; if(k<-1e-9){ $('cxConvRes').textContent='—'; $('cxConvUnit').textContent=''; $('cxConvEq').innerHTML='&nbsp;'; $('cxConvAll').innerHTML=''; err.textContent='That is below absolute zero (−273.15 °C).'; return; } }
+  try{
+    const r=cxConvert(c,v,from,to);
+    $('cxConvRes').textContent=cxFmtNum(r); $('cxConvUnit').textContent=nm(to);
+    $('cxConvEq').textContent=cxFmtNum(v)+' '+nm(from)+' ='; 
+    $('cxConvAll').innerHTML=c.u.map(u=>`<tr${u[0]===to?' style="background:#e6f4f1;font-weight:700"':''}><td>${escapeHtml(u[1])}</td><td class="num-r">${escapeHtml(cxFmtNum(cxConvert(c,v,from,u[0])))}</td></tr>`).join('');
+  }catch(e){ err.textContent='Value is too large to convert.'; }
+}
+function cxSwap(){ const f=$('cxFrom'), t=$('cxTo'); const a=f.value; f.value=t.value; t.value=a; cxConvRun(); }
+
+
+/* ---- standalone app glue ---- */
+function toast(msg){ const el=document.createElement('div'); el.className='toast'; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),1800); }
+function cxPretty(x){ return String(x).replace(/\*/g,'×').replace(/\//g,'÷').replace(/sqrt\(/g,'√(').replace(/\d+(\.\d*)?/g,m=>{ const p=m.split('.'); return formatIndianNum(p[0])+(p.length>1?'.'+p[1]:''); }); }
+function cxWords(v){
+  v=Math.abs(Number(v)); if(!Number.isFinite(v)||v<1000) return ''; v=Math.floor(v);
+  const cr=Math.floor(v/1e7), r=v%1e7, la=Math.floor(r/1e5), th=Math.floor(r%1e5/1e3), p=[];
+  if(cr) p.push(cr.toLocaleString('en-IN')+' Crore'); if(la) p.push(la+' Lakh'); if(th) p.push(th+' Thousand');
+  return p.join(' ');
+}
+function cxWordsFor(inp,out){ const v=parseCurrencyNum($(inp).value); const w=cxWords(v); $(out).textContent=w?'= ₹ '+w:''; }
+const CX_TABS=[['std','🔢','Standard'],['emi','🏦','EMI'],['pct','％','Percentage'],['area','📐','Area']];
+const CX_TITLES={std:'Standard',emi:'Loan EMI',pct:'Percentage',area:'Area'};
+function cxShow(key){
+  CXS.active=key; const isConv=!!CX_UNITS[key]; const pane=isConv?'conv':key;
+  ['std','emi','pct','conv'].forEach(p=>$('cxp-'+p).classList.toggle('active',p===pane));
+  document.querySelectorAll('#cxTabs button').forEach(b=>{ const on=b.dataset.k===key; b.classList.toggle('active',on); if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  $('cxTitle').textContent=CX_TITLES[key]||'';
+  document.querySelectorAll('.cx-hist.show').forEach(h=>h.classList.remove('show'));
+  if(isConv) cxConvSet(key); else if(key==='std') cxRender('std');
+  document.querySelector('main').scrollTop=0;
+}
+function cxHist(btn){ btn.closest('.cx-calc').querySelector('.cx-hist').classList.toggle('show'); }
+const _cxHistUse=cxHistUse; cxHistUse=function(i){ _cxHistUse(i); document.querySelectorAll('.cx-hist.show').forEach(h=>h.classList.remove('show')); };
+const _cxPress=cxPress; cxPress=function(w,l){ try{ if(navigator.vibrate) navigator.vibrate(6); }catch(e){} _cxPress(w,l); };
+const _cxRender=cxRender; cxRender=function(w){
+  const r=$('cx'+w+'Res'), before=r.textContent; _cxRender(w);
+  if(r.textContent!==before){ r.classList.remove('pop'); void r.offsetWidth; r.classList.add('pop'); }
+  const L=r.textContent.length; r.style.fontSize=L>22?'22px':L>16?'28px':L>12?'34px':'';
+  const n=Number(r.textContent.replace(/,/g,'')); $('cx'+w+'Words').textContent=r.classList.contains('err')?'':cxWords(n);
+};
+const _cxHistRender=cxHistRender; cxHistRender=function(){ _cxHistRender(); $('histCount').textContent='History ('+CXS.hist.length+')'; try{ localStorage.setItem('mlcalc_hist',JSON.stringify(CXS.hist)); }catch(e){} };
+
+/* ---- EMI: no caps on amount / rate / tenure, year-wise schedule ---- */
+function calcEMI(){
+  cxWordsFor('emiAmount','emiWords');
+  const p=Math.max(0,parseCurrencyNum($('emiAmount').value)), rate=Math.max(0,parseFloat($('emiRate').value)||0);
+  const tv=Math.max(0,parseFloat($('emiTenure').value)||0), n=Math.round($('emiUnit').value==='y'?tv*12:tv);
+  const sw=$('schedWrap'); const zero=()=>{ ['resEmi','resInterest','resTotal'].forEach(i=>$(i).textContent='₹0'); $('splitP').style.width='0'; $('pctP').textContent='0%'; $('pctI').textContent='0%'; sw.hidden=true; };
+  if(!(p>0&&n>0)) return zero();
+  const r=rate/1200; const emi=r>0?(p*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1):p/n; const tot=emi*n;
+  if(!Number.isFinite(emi)||!Number.isFinite(tot)){ zero(); $('resEmi').textContent='—'; return; }
+  const intr=Math.max(0,tot-p); $('resEmi').textContent=money(Math.round(emi)); $('resInterest').textContent=money(Math.round(intr)); $('resTotal').textContent=money(Math.round(tot));
+  const pp=Math.round(p/tot*1000)/10; $('splitP').style.width=pp+'%'; $('pctP').textContent=pp+'%'; $('pctI').textContent=(Math.round((100-pp)*10)/10)+'%';
+  if(n>1200){ sw.hidden=true; return; }
+  let bal=p, rows='', yP=0, yI=0;
+  for(let m=1;m<=n;m++){ const i=bal*r, pr=Math.min(bal,emi-i); bal=Math.max(0,bal-pr); yP+=pr; yI+=i;
+    if(m%12===0||m===n){ rows+=`<tr><td>${Math.ceil(m/12)}</td><td class="num-r">${money(Math.round(yP))}</td><td class="num-r">${money(Math.round(yI))}</td><td class="num-r">${money(Math.round(bal))}</td></tr>`; yP=0; yI=0; } }
+  $('schedBody').innerHTML=rows; sw.hidden=false;
+}
+const _calcPercent=calcPercent; calcPercent=function(){ cxWordsFor('pTotalAmount','pWords'); _calcPercent(); };
+const _cxConvRun=cxConvRun; cxConvRun=function(){ _cxConvRun(); };
+
+document.addEventListener('focusin',e=>{ if(e.target.id==='cxVal') setTimeout(()=>e.target.select(),0); });
+function cxInit(){
+  try{ const h=JSON.parse(localStorage.getItem('mlcalc_hist')||'[]'); if(Array.isArray(h)) CXS.hist=h; }catch(e){}
+  $('cxTabs').innerHTML=CX_TABS.map(t=>`<button type="button" data-k="${t[0]}" onclick="cxShow('${t[0]}')"><span aria-hidden="true">${t[1]}</span>${t[2]}</button>`).join('');
+  cxBuildKeys(); cxRender('std'); cxShow('std');
+}
+cxInit();
+
+/* ---- installable app: service worker + Install button ---- */
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+let _dip=null; const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); _dip=e; if(!standalone) $('installBtn').hidden=false; });
+window.addEventListener('appinstalled',()=>{ $('installBtn').hidden=true; toast('App install ho gaya ✔'); });
+$('installBtn').onclick=async()=>{ if(_dip){ _dip.prompt(); await _dip.userChoice; _dip=null; $('installBtn').hidden=true; } };
+if(!standalone && /iphone|ipad|ipod/i.test(navigator.userAgent)){ $('installBtn').hidden=false; $('installBtn').onclick=()=>toast('Safari me Share ⬆ → "Add to Home Screen" dabayein'); }
+</script>
+</body></html>
